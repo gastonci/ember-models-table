@@ -393,6 +393,15 @@ export default Component.extend({
   displayGroupedValueAs: 'row',
 
   /**
+  * The default values for the column visiblity, for when the user uses the restore to default
+  *
+  * @type {object}
+  * @default if no values is passed it will use the same values as the provided on columns
+  * @name defaultVisibleValues
+  */
+  defaultVisibleValues: {},
+
+  /**
    * <code>columns</code> fields which are observed to update shown table-columns
    * It is used only if <code>columnsAreUpdateable</code> is <code>true</code>
    *
@@ -1455,6 +1464,7 @@ export default Component.extend({
    */
   _setupColumns () {
     let self = this;
+    let defaultValues = this.get("defaultVisibleValues");
 
     let nColumns = A(get(this, 'columns').map(column => {
       let filterFunction = get(column, 'filterFunction');
@@ -1479,14 +1489,16 @@ export default Component.extend({
       if (isNone(get(c, 'mayBeHidden'))) {
         set(c, 'mayBeHidden', true);
       }
+      let buffer = defaultValues[c.propertyName];
 
       const { sortDirection, sortPrecedence } = column;
       const hasSortPrecedence = !isNone(sortPrecedence) && sortPrecedence > NOT_SORTED;
       const defaultSortPrecedence = hasSortPrecedence ? sortPrecedence : NOT_SORTED;
       const defaultSorting = sortDirection && (sortPrecedence > NOT_SORTED) ? sortDirection.toLowerCase() : 'none';
+      const defaultVisibility = buffer == undefined ? !get(c, 'isHidden') : !buffer;
 
       setProperties(c, {
-        defaultVisible: !get(c, 'isHidden'),
+        defaultVisible: defaultVisibility,
         sorting: defaultSorting,
         sortPrecedence: defaultSortPrecedence
       });
