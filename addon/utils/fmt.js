@@ -1,11 +1,9 @@
-import {isArray} from '@ember/array';
-import {isHTMLSafe} from '@ember/template';
+import Ember from "ember";
 
 export default function fmt(str, formats) {
-  str = str || '';
   let cachedFormats = formats;
 
-  if (!isArray(cachedFormats) || arguments.length > 2) {
+  if (!Ember.isArray(cachedFormats) || arguments.length > 2) {
     cachedFormats = new Array(arguments.length - 1);
 
     for (let i = 1, l = arguments.length; i < l; i++) {
@@ -14,11 +12,8 @@ export default function fmt(str, formats) {
   }
 
   // first, replace any ORDERED replacements.
-  let idx = 0; // the current index for non-numerical replacements
-  if (isHTMLSafe(str)) {
-    str = str.toString();
-  }
-  return str.replace(/%@([0-9]+)?/g, function (s, argIndex) {
+  let idx  = 0; // the current index for non-numerical replacements
+  return str.replace(/%@([0-9]+)?/g, function(s, argIndex) {
     argIndex = (argIndex) ? parseInt(argIndex, 10) - 1 : idx++;
     return cachedFormats[argIndex];
   });

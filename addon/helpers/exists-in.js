@@ -1,12 +1,12 @@
-import Helper from '@ember/component/helper';
-import {isArray} from '@ember/array';
-import { observer, computed, set, get } from '@ember/object';
+import Ember from 'ember';
 
-export default Helper.extend({
+const {get, set, computed, observer} = Ember;
+
+export default Ember.Helper.extend({
   content: computed('needle', 'haystack.[]', function() {
     let needle = get(this, 'needle');
     let haystack = get(this, 'haystack');
-    return isArray(haystack) ? haystack.includes(needle) : false;
+    return haystack.includes(needle);
   }).readOnly(),
 
   compute([haystack, needle]) {

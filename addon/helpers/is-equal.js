@@ -1,10 +1,7 @@
-import { helper } from '@ember/component/helper';
+import Ember from 'ember';
 
-export function isEqual([left, right, type]/*, hash*/) {
-  if (type === 'number') {
-    return Number(left) === Number(right);
-  }
+export function isEqual([left, right]/*, hash*/) {
   return left === right;
 }
 
-export default helper(isEqual);
+export default Ember.Helper.helper(isEqual);
