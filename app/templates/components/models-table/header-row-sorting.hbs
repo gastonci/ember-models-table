@@ -3,7 +3,7 @@
     {{#if column.isVisible}}
       {{#if column.tooltip}}
         {{#if column.useSorting}}
-          <th data-placement="bottom" title="{{column.tooltip}}" data-container="body" class="{{classes.theadCell}}" {{action "sort" column}}>
+          <th data-placement="bottom" title="{{column.tooltip}}" data-trigger="click hover" data-container="body" class="{{classes.theadCell}}" {{action "sort" column}}>
             {{#if column.templateForSortCell}}
               {{partial column.templateForSortCell}}
             {{else}}
@@ -14,9 +14,10 @@
                 {{partial headerSortingIconsTemplate}}
               {{/if}}
             {{/if}}
+            <i class="fa fa-question-circle" aria-hidden="true"></i>
           </th>
         {{else}}
-          <th class="{{classes.theadCell}} {{classes.theadCellNoSorting}}">
+          <th data-placement="bottom" title="{{column.tooltip}}" data-container="body hover" class="{{classes.theadCell}} {{classes.theadCellNoSorting}}">
             {{#if column.templateForSortCell}}
               {{partial column.templateForSortCell}}
             {{else}}
@@ -26,6 +27,7 @@
                 {{column.title}}
               {{/if}}
             {{/if}}
+            <i class="fa fa-question-circle" aria-hidden="true"></i>
           </th>
         {{/if}}
       {{else}}
