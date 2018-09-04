@@ -1,7 +1,7 @@
 <tr>
   {{#each processedColumns as |column|}}
-    {{#if column.tooltip}}
-      {{#if column.isVisible}}
+    {{#if column.isVisible}}
+      {{#if column.tooltip}}
         {{#if column.useSorting}}
           <th data-placement="bottom" title="{{column.tooltip}}" data-container="body" class="{{classes.theadCell}}" {{action "sort" column}}>
             {{#if column.templateForSortCell}}
@@ -16,23 +16,21 @@
             {{/if}}
           </th>
         {{else}}
-          <th data-placement="bottom" title="{{column.tooltip}}" data-container="body" class="{{classes.theadCell}} {{classes.theadCellNoSorting}}">
+          <th class="{{classes.theadCell}} {{classes.theadCellNoSorting}}">
             {{#if column.templateForSortCell}}
               {{partial column.templateForSortCell}}
             {{else}}
               {{#if column.componentForSortCell}}
-                {{component column.componentName data=data column=column record=record}}
+                {{component column.componentForSortCell data=data column=column row=record table=this}}
               {{else}}
                 {{column.title}}
               {{/if}}
             {{/if}}
           </th>
         {{/if}}
-      {{/if}}
-    {{else}}
-      {{#if column.isVisible}}
+      {{else}}
         {{#if column.useSorting}}
-          <th data-placement="bottom" title="{{column.tooltip}}" data-container="body" class="{{classes.theadCell}}" {{action "sort" column}}>
+          <th class="{{classes.theadCell}}" {{action "sort" column}}>
             {{#if column.templateForSortCell}}
               {{partial column.templateForSortCell}}
             {{else}}
@@ -45,12 +43,12 @@
             {{/if}}
           </th>
         {{else}}
-          <th data-placement="bottom" title="{{column.tooltip}}" data-container="body" class="{{classes.theadCell}} {{classes.theadCellNoSorting}}">
+          <th class="{{classes.theadCell}} {{classes.theadCellNoSorting}}">
             {{#if column.templateForSortCell}}
               {{partial column.templateForSortCell}}
             {{else}}
               {{#if column.componentForSortCell}}
-                {{component column.componentName data=data column=column record=record}}
+                {{component column.componentForSortCell data=data column=column row=record table=this}}
               {{else}}
                 {{column.title}}
               {{/if}}

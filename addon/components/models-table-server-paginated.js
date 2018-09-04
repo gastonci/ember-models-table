@@ -5,6 +5,7 @@ import layout from '../templates/components/models-table';
 const {
   get,
   set,
+  isBlank,
   setProperties,
   computed,
   typeOf,
@@ -167,16 +168,13 @@ export default ModelsTable.extend({
     }
 
     // Add per-column filter
-    columns.forEach(column => {
-      let filter = get(column, 'filterString');
-      let filterTitle = this.getCustomFilterTitle(column);
-
-      if (filter) {
-        query[filterTitle] = filter;
-      } else {
-        delete query[filterTitle];
-      }
-    });
+    if (get(this, 'useFilteringByColumns')) {
+      columns.forEach(column => {
+        let filter = get(column, 'filterString');
+        let filterTitle = this.getCustomFilterTitle(column);
+        this._setQueryFilter(query, column, filterTitle, filter);
+      });
+    }
 
     setProperties(this, {isLoading: true, isError: false});
 
@@ -184,6 +182,25 @@ export default ModelsTable.extend({
     promise.then(newData => setProperties(this, {isLoading: false, isError: false, filteredContent: newData}))
       .catch(() => setProperties(this, {isLoading: false, isError: true}));
     return promise;
+  },
+
+  /**
+   * Actually set the filter on a query.
+   * This can be overwritten for special case handling.
+   * Note that this will mutate the given query object!
+   *
+   * @param {object} query the query to mutate
+   * @param {object} column the column that is filtering
+   * @param {string} filterTitle the query param name for filtering
+   * @param {mixed} filter the actual filter value
+   * @private
+   */
+  _setQueryFilter(query, column, filterTitle, filter) {
+    if (!isBlank(filter)) {
+      query[filterTitle] = filter;
+    } else {
+      delete query[filterTitle];
+    }
   },
 
   /**

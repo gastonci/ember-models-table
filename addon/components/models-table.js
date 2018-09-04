@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import fmt from '../utils/fmt';
 import assignPoly from '../utils/assign-poly';
+import betterCompare from '../utils/better-compare';
 
 import layout from '../templates/components/models-table';
 import ModelsTableColumn from '../-private/column';
@@ -25,6 +26,7 @@ const {
   computed,
   observer,
   isNone,
+  isBlank,
   A,
   on,
   compare,
@@ -56,8 +58,8 @@ const defaultMessages = {
 };
 
 const defaultIcons = {
-  'sort-asc': 'glyphicon glyphicon-triangle-bottom',
-  'sort-desc': 'glyphicon glyphicon-triangle-top',
+  'sort-asc': 'glyphicon glyphicon-triangle-top',
+  'sort-desc': 'glyphicon glyphicon-triangle-bottom',
   'column-visible': 'glyphicon glyphicon-check',
   'column-hidden': 'glyphicon glyphicon-unchecked',
   'nav-first': 'glyphicon glyphicon-chevron-left',
@@ -149,11 +151,12 @@ function getFilterOptionsCP(propertyName) {
     let predefinedFilterOptions = get(this, 'predefinedFilterOptions');
     let filterWithSelect = get(this, 'filterWithSelect');
     if (filterWithSelect && 'array' !== typeOf(predefinedFilterOptions)) {
-      let options = A(data.mapBy(propertyName)).compact();
+      let _data = A(A(data).compact());
+      let options = A(_data.mapBy(propertyName)).compact();
       if (get(this, 'sortFilterOptions')) {
         options = options.sort();
       }
-      return A([''].concat(options)).uniq().map(optionStrToObj);
+      return A(['', ...options]).uniq().map(optionStrToObj);
     }
     return [];
   });
@@ -198,7 +201,9 @@ export default Component.extend({
    * @name ModelsTable#sortProperties
    * @default []
    */
-  sortProperties: A([]),
+  sortProperties: computed(function() {
+    return A([]);
+  }),
 
   /**
    * Determines if multi-columns sorting should be used
@@ -308,7 +313,9 @@ export default Component.extend({
    * @name ModelsTable#columnFieldsToCheckUpdate
    * @default ['propertyName', 'template']
    */
-  columnFieldsToCheckUpdate: A(['propertyName', 'template']),
+  columnFieldsToCheckUpdate: computed(function() {
+    return A(['propertyName', 'template']);
+  }),
 
   /**
    * All table records
@@ -317,7 +324,9 @@ export default Component.extend({
    * @name ModelsTable#data
    * @default []
    */
-  data: A([]),
+  data: computed(function() {
+    return A([]);
+  }),
 
   /**
    * Table columns
@@ -326,32 +335,53 @@ export default Component.extend({
    * @name ModelsTable#columns
    * @default []
    */
-  columns: A([]),
+  columns: computed(function() {
+    return A([]);
+  }),
+
+  /**
+   * Sets of columns that can be toggled together.
+   *
+   * @type {Object[]}
+   * @name ModelsTable#columnSets
+   * @default []
+   */
+  columnSets: computed(function() {
+    return A([]);
+  }),
 
   /**
    * @type {Ember.Object[]}
    * @name ModelsTable#processedColumns
    * @default []
    */
-  processedColumns: A([]),
+  processedColumns: computed(function() {
+    return A([]);
+  }),
 
   /**
    * @type {Object}
    * @name ModelsTable#messages
    */
-  messages: O.create({}),
+  messages: computed(function() {
+    return O.create({});
+  }),
 
   /**
    * @type {Object}
    * @name ModelsTable#classes
    */
-  classes: O.create({}),
+  classes: computed(function() {
+    return O.create({});
+  }),
 
   /**
    * @type {Object}
    * @name ModelsTable#icons
    */
-  icons: O.create({}),
+  icons: computed(function() {
+    return O.create({});
+  }),
 
   /**
    * List of the additional headers
@@ -360,7 +390,9 @@ export default Component.extend({
    * @type {groupedHeader[][]}
    * @name ModelsTable#groupedHeaders
    */
-  groupedHeaders: A([]),
+  groupedHeaders: computed(function() {
+    return A([]);
+  }),
 
   /**
    * Template with First|Prev|Next|Last buttons
@@ -532,7 +564,7 @@ export default Component.extend({
    * @name ModelsTable#_selectedItems
    */
   _selectedItems: null,
-  
+
   /**
    * Allow or disallow to select rows on click
    * If `false` - no row can be selected
@@ -632,7 +664,7 @@ export default Component.extend({
   anyFilterUsed: computed('globalFilterUsed', 'processedColumns.@each.filterUsed', function () {
     return get(this, 'globalFilterUsed') || get(this, 'processedColumns').isAny('filterUsed');
   }),
-  
+
   /**
    * True if all processedColumns dosn't use filtering and sorting
    *
@@ -780,8 +812,8 @@ export default Component.extend({
               return true;
             }
             if (filteringIgnoreCase) {
-              cellValue = cellValue.toLowerCase();
-              filterString = filterString.toLowerCase();
+              cellValue = typeOf(cellValue) === 'string' ? cellValue.toLowerCase() : cellValue;
+              filterString = typeOf(filterString) === 'string' ? filterString.toLowerCase() : filterString;
             }
             return 'function' === typeOf(c.filterFunction) ? c.filterFunction(cellValue, filterString, row) : 0 === compare(cellValue, filterString);
           }
@@ -809,7 +841,7 @@ export default Component.extend({
     return sortProperties.length ? A(_filteredContent.sort((row1, row2) => {
       for (let i = 0; i < sortProperties.length; i++) {
         let [prop, direction] = sortProperties[i];
-        let result = compare(get(row1, prop), get(row2, prop));
+        let result = betterCompare(get(row1, prop), get(row2, prop));
         if (result !== 0) {
           return (direction === 'desc') ? (-1 * result) : result;
         }
@@ -909,7 +941,9 @@ export default Component.extend({
    * @default [10, 25, 50]
    * @name ModelsTable#pageSizeValues
    */
-  pageSizeValues: A([10, 25, 50]),
+  pageSizeValues: computed(function() {
+    return A([10, 25, 50]);
+  }),
 
   /**
    * List of options for pageSize-selectBox
@@ -920,7 +954,25 @@ export default Component.extend({
    * @default []
    * @private
    */
-  pageSizeOptions: A([]),
+  pageSizeOptions: computed(function() {
+    return A([]);
+  }),
+
+  /**
+   * These are options for the columns dropdown.
+   * By default, the "Show All", 'Hide All" and "Restore Defaults" buttons are displayed.
+   *
+   * @type {{ showAll: boolean, hideAll: boolean, restoreDefaults: boolean, columnSets: object[] }}
+   * @private
+   */
+  columnDropdownOptions: computed('columnSets.{label,showColumns,hideOtherColumns}', function() {
+    return O.create({
+      showAll: true,
+      hideAll: true,
+      restoreDefaults: true,
+      columnSets: A(get(this, 'columnSets') || [])
+    });
+  }),
 
   /**
    * Show first page if for some reasons there is no content for current page, but table data exists
@@ -1095,7 +1147,7 @@ export default Component.extend({
       if (get(c, 'filterWithSelect') && get(c, 'useFilter')) {
         let predefinedFilterOptions = get(column, 'predefinedFilterOptions');
         let usePredefinedFilterOptions = 'array' === typeOf(predefinedFilterOptions);
-        if (usePredefinedFilterOptions) {
+        if (usePredefinedFilterOptions && get(predefinedFilterOptions, 'length')) {
           const types = A(['object', 'instance']);
           const allObjects = A(predefinedFilterOptions).every(option => types.includes(typeOf(option)) && option.hasOwnProperty('label') && option.hasOwnProperty('value'));
           const allPrimitives = A(predefinedFilterOptions).every(option => !types.includes(typeOf(option)));
@@ -1104,9 +1156,13 @@ export default Component.extend({
             predefinedFilterOptions = predefinedFilterOptions.map(optionStrToObj);
           }
           if ('' !== predefinedFilterOptions[0].value) {
-            predefinedFilterOptions = [{value: '', label: ''}].concat(predefinedFilterOptions);
+            predefinedFilterOptions = [{value: '', label: ''}, ...predefinedFilterOptions];
           }
           set(c, 'filterOptions', usePredefinedFilterOptions ? predefinedFilterOptions : []);
+        }
+        else if (usePredefinedFilterOptions) {
+          // Empty array as predefined filter
+          set(c, 'useFilter', false);
         }
         else {
           if (propertyName) {
@@ -1271,7 +1327,7 @@ export default Component.extend({
         columnFilters: {}
       });
       columns.forEach(column => {
-        if (get(column, 'filterString')) {
+        if (!isBlank(get(column, 'filterString'))) {
           settings.columnFilters[get(column, 'propertyName')] = get(column, 'filterString');
         }
       });
@@ -1342,6 +1398,30 @@ export default Component.extend({
     set(this, '_expandedRowIndexes', A([]));
   }),
 
+  /**
+   * Rebuild the whole table.
+   * This can be called to force a complete re-render of the table.
+   *
+   * @method rebuildTable
+   * @private
+   */
+  rebuildTable() {
+    set(this, 'currentPageNumber', 1);
+    this._clearFilters();
+    this.setup();
+  },
+
+  /**
+   * Clear all filters.
+   *
+   * @method _clearFilters
+   * @private
+   */
+  _clearFilters() {
+    set(this, 'filterString', '');
+    get(this, 'processedColumns').setEach('filterString', '');
+  },
+
   actions: {
 
     sendAction () {
@@ -1364,7 +1444,7 @@ export default Component.extend({
     },
 
     hideAllColumns () {
-      get(this, 'processedColumns').setEach('isHidden', true);
+      A(get(this, 'processedColumns').filterBy('mayBeHidden')).setEach('isHidden', true);
       this._sendColumnsVisibilityChangedAction();
     },
 
@@ -1373,6 +1453,61 @@ export default Component.extend({
         set(c, 'isHidden', !get(c, 'defaultVisible'));
         this._sendColumnsVisibilityChangedAction();
       });
+    },
+
+    toggleColumnSet({ showColumns = [], hideOtherColumns, toggleSet = false } = {}) {
+      let columns = get(this, 'processedColumns');
+
+      // If hideOtherColumns is not set, default to true if toggleSet=false, else to false
+      hideOtherColumns = isNone(hideOtherColumns) ? !toggleSet : hideOtherColumns;
+
+      // If showColumns is a function, call it
+      if (typeOf(showColumns) === 'function') {
+        return run(this, showColumns, columns);
+      }
+
+      let setColumns = A([]);
+      let otherColumns = A([]);
+
+      columns.forEach((column) => {
+        let columnId = get(column, 'propertyName');
+
+        if (!columnId || !get(column, 'mayBeHidden')) {
+          return;
+        }
+
+        showColumns = A(showColumns);
+        if (showColumns.includes(columnId)) {
+          setColumns.pushObject(column);
+        } else {
+          otherColumns.pushObject(column);
+        }
+      });
+
+      // By default, all columns should always be set to visible
+      // However, if `toggleSet=true`, then the set should be toggled between visible/hidden
+      // In this case, if one of the set columns is hidden, make them all visible, else hide them
+      let targetVisibility = true;
+      if (toggleSet) {
+        targetVisibility = !!setColumns.findBy('isVisible', false);
+      }
+
+      setColumns.forEach((column) => {
+        let columnId = get(column, 'propertyName');
+        if (showColumns.includes(columnId) && get(column, 'isVisible') !== targetVisibility) {
+          this.send('toggleHidden', column);
+        }
+      });
+
+      if (hideOtherColumns) {
+        otherColumns.forEach((column) => {
+          let columnId = get(column, 'propertyName');
+
+          if (!showColumns.includes(columnId) && get(column, 'isVisible')) {
+            this.send('toggleHidden', column);
+          }
+        });
+      }
     },
 
     gotoFirst () {
@@ -1525,8 +1660,7 @@ export default Component.extend({
      * Clear all column filters and global filter
      */
     clearFilters() {
-      set(this, 'filterString', '');
-      get(this, 'processedColumns').setEach('filterString', '');
+      this._clearFilters();
     },
 
     /**
